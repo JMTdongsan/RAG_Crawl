@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 
-from retriever import crawl_and_summarize
+from crawler import crawl_and_summarize
 
 app = Flask(__name__)
 

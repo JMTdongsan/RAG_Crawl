@@ -71,7 +71,7 @@ def crawl_and_summarize(keyword):
         futures = {executor.submit(task, i, obj): i for i, obj in enumerate(htmls)}
         for future in concurrent.futures.as_completed(futures):
             future.result()
-    return summarizes
+    return summarizes, urls
 
 
 
