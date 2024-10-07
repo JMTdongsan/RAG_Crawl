@@ -8,7 +8,7 @@ from typing import List
 url = os.getenv('EMBED_URL')  # 여기에 실제 URL을 입력하세요.
 # sub_url = "http://117.16.136.198:8080/embed"
 
-def get_embed(inputs):
+def get_embed(inputs:List[str]|str):
     # inputs가 문자열 또는 문자열 리스트일 수 있음
     if isinstance(inputs, str):
         inputs = [inputs]

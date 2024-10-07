@@ -1,5 +1,7 @@
 import concurrent
 from concurrent.futures import ThreadPoolExecutor
+
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 import requests
@@ -12,10 +14,16 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 def get_html(url):
-    service = Service()
-    driver = webdriver.Chrome()
-    driver.get(url)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Headless 모드 추가
+    chrome_options.add_argument("--no-sandbox")  # 일부 환경에서 충돌 방지를 위해 추가
+    chrome_options.add_argument("--disable-dev-shm-usage")  # 리소스 부족 문제 해결
+    chrome_options.add_argument("--disable-gpu")  # GPU 비활성화 (Linux에서 가끔 필요)
 
+    # Chrome Driver 실행
+    service = Service()  # 필요시 경로 지정 가능
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get(url)
     time.sleep(2)
     try:
         driver.switch_to.frame('mainFrame')
@@ -56,15 +64,15 @@ def crawl_and_summarize(keyword):
     summarizes = [None] * len(urls)
     htmls = []
     for url in urls:
-        html = get_html(url)[:16000]
+        html = get_html(url)[:7000]
         htmls.append(html)
     print("html 추출 완료, llm 전송 시작")
     def task(index, html):
         prompt = [{"role": "user", "content": "아래 웹페이지의 내용을 요약해 주세요. 작성자의 정보는 제외하고, 광고나 관련 없는 정보도 무시해 주세요."+
                                       "핵심 정보만 포함해 주세요. 영어로 생각하고 한글로 답변해주세요"+
         f"{keyword}과 관련없는 내용은 광고이다. 웹페이지 전체가 관련이 없다면 광고라고 판단하고 'advertisement' 라고 답변해라. "
-                                              + html}, {"role": "system", "content":
-            "You are an assistant that specializes in summarizing text. Focus on extracting key points and main ideas from the provided content. plese reply in korean"}]
+                                              + html}, {"role": "assistant", "content":
+            "You are an assistant that specializes in summarizing text. Focus on extracting key points and main ideas from the provided content. please reply in korean"}]
         summarizes[index] = send2llm(prompt)
         print(summarizes[index])
     with ThreadPoolExecutor(max_workers=5) as executor:
@@ -78,7 +86,7 @@ def crawl_and_summarize(keyword):
 
 
 if __name__ == '__main__':
-    summarizes = crawl_and_summarize("vllm")
+    summarizes = crawl_and_summarize("")
     embeds = []
     for summary in summarizes:
         embeds += get_embed(summary)

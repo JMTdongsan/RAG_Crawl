@@ -15,6 +15,11 @@ from embed_api import get_embed
 document_store = MilvusDocumentStore(
     collection_name="information_db",
     connection_args={"uri": "http://" + os.getenv('MILVUS', 'localhost') + ":19530"},
+    consistency_level="Session",
+    drop_old=False,
+    primary_field="id",
+    text_field="content",
+    vector_field="embed",
     index_params={
         "index_type": "GPU_CAGRA",
         "metric_type": "L2",
@@ -24,16 +29,11 @@ document_store = MilvusDocumentStore(
             "build_algo": "NN_DESCENT",
             "cache_dataset_on_device": "false"
         }
-    },
-    consistency_level="Session",
-    drop_old=False,  # 기존 컬렉션을 삭제하지 않음
-    primary_field="id",
-    text_field="content",
-    vector_field="embed",
+    }
 )
 
-# 4. 데이터 삽입 함수 정의
-def insert_data(summarized, urls):
+# 데이터 삽입 함수 정의
+def insert_data(summarized: List[str], urls: List[str]):
     if len(summarized) != len(urls):
         raise ValueError("summarized와 urls의 길이가 다릅니다.")
 
@@ -53,6 +53,7 @@ def insert_data(summarized, urls):
     # 문서 저장
     document_store.write_documents(documents)
     print("After Number of documents:", document_store.count_documents())
+
 
 # 5. 샘플 데이터 삽입 (테스트용)
 if __name__ == '__main__':
