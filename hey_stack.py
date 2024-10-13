@@ -1,4 +1,3 @@
-import os
 import uuid
 import json
 import requests
@@ -9,12 +8,13 @@ from milvus_haystack import MilvusDocumentStore
 from milvus_haystack.milvus_embedding_retriever import MilvusEmbeddingRetriever
 from typing import List
 
+from config import MILVUS
 from embed_api import get_embed
 
 #  MilvusDocumentStore 설정
 document_store = MilvusDocumentStore(
     collection_name="information_db",
-    connection_args={"uri": "http://" + os.getenv('MILVUS', 'localhost') + ":19530"},
+    connection_args={"uri": "http://" + MILVUS + ":19530"},
     consistency_level="Session",
     drop_old=False,
     primary_field="id",
@@ -57,6 +57,7 @@ def insert_data(summarized: List[str], urls: List[str]):
 
 # 5. 샘플 데이터 삽입 (테스트용)
 if __name__ == '__main__':
-    sample_summaries = ["이것은 첫 번째 문서입니다.", "이것은 두 번째 문서입니다."]
+    sample_summaries = ["정비사업은 일종의 소형 재개발 사업으로서, 노후·불량건축물이 밀집한 가로구역에서 종전의 가로를 유지하면서 소규모로 주거환경을 개선하기 위하여 시행하는, 소규모주택정비사업의 하나이다. 2018년 「빈집 및 소규모주택 정비에 관한 특례법」 개정 시 주거환경관리사업과 함께 정비사업 유형의 하나로 도입되었으며, 기존 저층주거지의 도시조직과 가로망을 유지하며 주거환경을 개선하기 위하여 시행하는 소규모 사업이다.",
+                        "정비사업 정보몽땅은 클린업시스템, 사업비 및 분담금 추정프로그램, e-조합시스템의 개별 운영 및 사용자관리, 로그인, 정보공개 등 기능 중복으로 사용자 불편 및 혼란에 따른 민원을 해소하고자 이를 통합·일원화하여 정비사업 투명성 강화 및 이용편의성을 개선한 종합정보관리시스템입니다."]
     sample_urls = ["https://example.com/1", "https://example.com/2"]
     insert_data(sample_summaries, sample_urls)

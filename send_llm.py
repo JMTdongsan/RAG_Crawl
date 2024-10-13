@@ -1,60 +1,31 @@
-import time
-from concurrent.futures import ThreadPoolExecutor
-import os
-from typing import List, Dict, Union, Any
+from typing import List
 from haystack import component
-from openai import OpenAI
-from openai.types.chat import ChatCompletionMessage
-
-from benchmark import bench_questions
-
-client = OpenAI(
-    base_url=os.getenv('VLLM_URL'),
-    api_key=os.getenv('VLLM_API_KEY'),
-)
+from config import client,model_name
+from token_calc import truncate_to_max_tokens
 
 
-def send2llm(messages: List[Dict[str, Union[str, Any]]]) -> str :
-    if messages is None:
-        messages = [{"role": "user", "content": "who are you? "}]
-
-    model = os.getenv('DEFAULT_MODEL')
-    try:
-        completion = client.chat.completions.create(model=model, messages=messages,temperature=0.2)
-    except Exception as e:
-        return "error :" + str(e)
-    # print(completion.choices[0].message)
-    return completion.choices[0].message.content
+def vanila_inference(message: str):
+    message = truncate_to_max_tokens(message)
+    message =  [{"role": "system", "content": "you are a smart assistant.please reply in korean"},
+                {"role": "user", "content": message}]
+    completion = client.chat.completions.create(
+        model=model_name,
+        messages=message)
+    # try: # 중국어가 나왔을 경우 맨 마지막 것만 선택
+    #     completion = completion.choices[0].message.content.split("翻译成韩语：")[-1]
+    # except :
+    #     pass
+    return completion
 
 
 @component
 class CustomGenerator:
     @component.output_types(replies=List[str])
     def run(self, prompt: str):
-        # messages 형식으로 변환
-        prompt = prompt.replace("'", "")
-        messages = [{"role": "user", "content": prompt}]
-        # LLM 서버에 요청
-        print(messages)
-        reply = send2llm(messages=messages)
+        reply = vanila_inference(message=prompt)
         # LLM 서버의 응답에서 텍스트 추출
         if isinstance(reply, dict) and 'content' in reply:
             reply_content = reply['content']
         else:
             reply_content = str(reply)
         return {"replies": [reply_content]}
-
-
-if __name__ == "__main__":  # for test
-    futures = []
-    start_time = time.time()
-    with ThreadPoolExecutor(max_workers=38) as executor:
-        for i in range(100000):
-            messages = [{"role": "system", "content": "you are a smart assistant."},
-                        {"role": "user", "content": bench_questions[i % len(bench_questions)]}]
-            futures.append(executor.submit(send2llm, messages))
-
-            # 모든 작업이 완료될 때까지 기다립니다
-        for future in futures:
-            print(future.result())
-    print("%s milliseconds" % round((time.time() - start_time) * 1000))

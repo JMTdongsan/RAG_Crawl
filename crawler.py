@@ -9,9 +9,11 @@ from bs4 import BeautifulSoup
 import time
 
 from embed_api import get_embed
-from send_llm import send2llm
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+
+from send_llm import vanila_inference
+
 
 def get_html(url):
     chrome_options = Options()
@@ -41,7 +43,7 @@ def get_html(url):
 
 
 
-def crawl_and_summarize(keyword):
+def naver_serch(keyword):
     blog_url = f"https://search.naver.com/search.naver?ssc=tab.blog.all&sm=tab_jum&query={keyword}"
     news_url = f"https://search.naver.com/search.naver?ssc=tab.news.all&where=news&sm=tab_jum&query={keyword}"
     headers = {'User-Agent': 'Mozilla/5.0'}
@@ -68,12 +70,12 @@ def crawl_and_summarize(keyword):
         htmls.append(html)
     print("html 추출 완료, llm 전송 시작")
     def task(index, html):
-        prompt = [{"role": "user", "content": "아래 웹페이지의 내용을 요약해 주세요. 작성자의 정보는 제외하고, 광고나 관련 없는 정보도 무시해 주세요."+
-                                      "핵심 정보만 포함해 주세요. 영어로 생각하고 한글로 답변해주세요"+
-        f"{keyword}과 관련없는 내용은 광고이다. 웹페이지 전체가 관련이 없다면 광고라고 판단하고 'advertisement' 라고 답변해라. "
-                                              + html}, {"role": "assistant", "content":
-            "You are an assistant that specializes in summarizing text. Focus on extracting key points and main ideas from the provided content. please reply in korean"}]
-        summarizes[index] = send2llm(prompt)
+        prompt = f"You are an assistant that specializes in summarizing text."\
+                 f"아래 웹페이지의 내용을 요약해 주세요. 작성자의 정보는 제외하고, 광고나 관련 없는 정보도 무시해 주세요."\
+                 f"핵심 정보만 포함해 주세요. 영어로 생각하고 한글로 답변해주세요"\
+                 f"{keyword}과 관련없는 내용은 광고이다. 웹페이지 전체가 관련이 없다면 광고라고 판단하고 'advertisement' 라고 답변해라. "\
+                 f"content : {html}"
+        summarizes[index] = vanila_inference(prompt)
         print(summarizes[index])
     with ThreadPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(task, i, obj): i for i, obj in enumerate(htmls)}
@@ -86,7 +88,7 @@ def crawl_and_summarize(keyword):
 
 
 if __name__ == '__main__':
-    summarizes = crawl_and_summarize("")
+    summarizes = naver_serch("도로 정비 사업")
     embeds = []
     for summary in summarizes:
         embeds += get_embed(summary)

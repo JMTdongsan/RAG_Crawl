@@ -1,16 +1,15 @@
-import os
+
 from haystack import Pipeline
-from haystack.utils import Secret
 from haystack.components.builders import PromptBuilder
-from haystack.components.generators import OpenAIGenerator
 from milvus_haystack import MilvusEmbeddingRetriever, MilvusDocumentStore
 
 from embed_api import CustomTextEmbedder
 from hey_stack import document_store
 from send_llm import CustomGenerator
 
-prompt_template = """think english, and reply in korean, think step by step.
-                        Answer the following query based on the provided context. If the context does not include an answer, reply with 'I don't know'. If you want to question, just do it\n
+prompt_template = """think english, and reply in korean
+                     Answer the following query based on the provided context. If the context does not include an answer, 
+                     If you can't answer with Documents, you can use searching tool\n
                      Query: {{query}}
                      Documents:
                      {% for doc in documents %}

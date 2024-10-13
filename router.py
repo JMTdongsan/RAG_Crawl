@@ -10,10 +10,9 @@ app = Flask(__name__)
 
 
 # API to handle RAG-based question answering
-@app.route('/api/ask', methods=['GET'])
-def ask_question():
+@app.route('/api/ask_rag', methods=['GET'])
+def rag_question():
     question = request.args.get('question')
-
     if not question:
         return jsonify({"error": "Question is required"}), 400
 
@@ -38,21 +37,20 @@ def ask_question():
         return jsonify({"error": error_message, "trace": trace}), 500
 
 
-@app.route('/api/crawl', methods=['GET'])
-def crawl_api():
-    keyword = request.args.get('keyword')
-    if not keyword:
-        return jsonify({"error": "Keyword is required"}), 400
-    summaries, urls = crawl_and_summarize(keyword)
-    return jsonify({"keyword": keyword, "summaries": summaries})
+@app.route('/api/ask', methods=["GET"])
+def fcall_question():
+    question = request.args.get('question')
+    if not question:
+        return jsonify({"error": "Question is required"}), 400
 
-@app.route('/api/crawl2', methods=['GET'])
+
+
+@app.route('/api/crawl', methods=['GET'])
 def crawl_insert():
     keyword = request.args.get('keyword')
     if not keyword:
         return jsonify({"error": "Keyword is required"}), 400
     summaries, urls = crawl_and_summarize(keyword)
-    print("crawl end insert start")
     insert_data(summaries, urls)
     return jsonify({"keyword": keyword, "summaries": summaries})
 

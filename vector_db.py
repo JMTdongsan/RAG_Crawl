@@ -4,8 +4,10 @@ from pymilvus import (
     Collection, utility
 )
 
+from config import MILVUS
+
 # Milvus에 연결
-connections.connect("default", host="localhost", port="19530")
+connections.connect("default", host=MILVUS, port="19530")
 
 # 필드 정의
 id_field = FieldSchema(
