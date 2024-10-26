@@ -12,6 +12,7 @@ from embed_api import get_embed
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+from insert2DB import insert_data
 from send_llm import vanila_inference
 
 
@@ -38,8 +39,6 @@ def get_html(url):
 
     driver.close()
     return html
-
-
 
 
 
@@ -83,13 +82,19 @@ def naver_serch(keyword):
             future.result()
     return summarizes, urls
 
+def search2naver(keyword):
+    summarizes, urls = naver_serch(keyword)
+    insert_data(summarizes, urls)
+    message = (f"Read below articles and then explain about {keyword}. as possible as you can describe it in detail."
+               f"you will get a tip as long as you described"
+               f"It must be understandable to teenagers. think in chinese, reply in korean. article: ".join(summarizes))
+    return vanila_inference(message)
 
 
 
 
-if __name__ == '__main__':
-    summarizes = naver_serch("도로 정비 사업")
-    embeds = []
-    for summary in summarizes:
-        embeds += get_embed(summary)
+
+
+
+
 

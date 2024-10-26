@@ -10,12 +10,17 @@ def vanila_inference(message: str):
                 {"role": "user", "content": message}]
     completion = client.chat.completions.create(
         model=model_name,
+        temperature=0.7,
+        top_p=0.8,
+        extra_body={
+            "repetition_penalty": 1.05,
+        },
         messages=message)
     # try: # 중국어가 나왔을 경우 맨 마지막 것만 선택
     #     completion = completion.choices[0].message.content.split("翻译成韩语：")[-1]
     # except :
     #     pass
-    return completion
+    return completion.choices[0].message.content
 
 
 @component

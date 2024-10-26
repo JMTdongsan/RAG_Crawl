@@ -4,7 +4,7 @@ from haystack.components.builders import PromptBuilder
 from milvus_haystack import MilvusEmbeddingRetriever, MilvusDocumentStore
 
 from embed_api import CustomTextEmbedder
-from hey_stack import document_store
+from vector_db import document_store
 from send_llm import CustomGenerator
 
 prompt_template = """think english, and reply in korean
@@ -28,12 +28,3 @@ rag_pipeline.connect("retriever.documents", "prompt_builder.documents")
 rag_pipeline.connect("prompt_builder", "generator")
 
 
-if __name__ == '__main__':
-    question = "what is REITs?"
-    results = rag_pipeline.run(
-        {
-            "text_embedder": {"text": question},
-            "prompt_builder": {"query": question},
-        }
-    )
-    print('RAG answer:', results["generator"]["replies"][0])
